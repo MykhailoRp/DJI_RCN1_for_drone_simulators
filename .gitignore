@@ -3,3 +3,6 @@
 .vscode
 debug
 __pycache__
+output
+build
+*.spec

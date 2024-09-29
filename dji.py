@@ -56,43 +56,66 @@ CAMERA_LEFT_SENSITIVITY = CAMERA_RIGHT_SENSITIVITY * -1
 # if not found: exit with error message
 com_port_found = False
 
-for port in serial.tools.list_ports.comports(True):
-    if port.description.find('DJI USB VCOM For Protocol') == 0:
-        port_name = port.name
-        # Fallback for Windows 11: port name is empty, have to parse it:
-        if port_name == None:
-            port_name = port.device
-        serial_port = serial.Serial(port=port_name)
-        # set color to green
-        print('\u001b[32;1m')
-        print(port.description, 'found and opened for communication')
-        print('Your DJI RC-N1 controller runs in Xbox mode now')
-        print('Happy flying :-)')
-        # set color th blue
-        print('\u001b[34;1m')
-        print('Use the following key mapping:')
-        print('  Left Stick: Pitch and Roll')
-        print('  Right Stick: Yaw and Throttle')
-        print('  Camera Control Dial to the right:', button_r, 'button (threshold >', CAMERA_RIGHT_SENSITIVITY, ')')
-        print('  Camera Control Dial to the left:', button_l, 'button (threshold <', CAMERA_LEFT_SENSITIVITY, ')\n')
-        print('sorry, no other buttons are supported yet :-(')
-        # reset color
-        print('\u001b[0m')
-        com_port_found = True
-        break
+print("Waiting to see controller in ports")
+print('\u001b[31;1m')
+print('If this takes too long check this:')
+print('Is the controller connected to the computer and turned on?')
+print('DJI Assistant 2 (Consumer Drones Series) is installed correctly?')
+print('Assistant 2 MAY NOT RUNNING at the same time!!!')
+# reset color
+print('\u001b[0m')
 
-if not com_port_found:
-    # set color to red
-    print('\u001b[31;1m')
-    print('Is the controller connected to the computer and turned on?')
-    print('DJI USB VCOM For Protocol not found\n')
-    print('Controller is connected to the computer and turned on?')
-    print('DJI Assistant 2 (Consumer Drones Series) is installed correctly?')
-    print('Assistant 2 MAY NOT RUNNING at the same time!!!')
-    print('If all of the above is true, try to use a different USB cable or try with lower the baud rate\n')
-    # reset color
-    print('\u001b[0m')
-    sys.exit(1)
+animation = 0
+
+while not com_port_found:
+
+    ports = serial.tools.list_ports.comports(True)
+
+    for port in ports:
+        if port.description.find('USB VCOM For Protocol') != -1:
+            time.sleep(1)
+            port_name = port.name
+            # Fallback for Windows 11: port name is empty, have to parse it:
+            if port_name == None:
+                port_name = port.device
+            serial_port = serial.Serial(port=port_name)
+            # set color to green
+            print('\u001b[32;1m')
+            print(port.description, 'found and opened for communication')
+            print('Your DJI RC-N1 controller runs in Xbox mode now')
+            print('Happy flying :-)')
+            # set color th blue
+            print('\u001b[34;1m')
+            print('Use the following key mapping:')
+            print('  Left Stick: Pitch and Roll')
+            print('  Right Stick: Yaw and Throttle')
+            print('  Camera Control Dial to the right:', button_r, 'button (threshold >', CAMERA_RIGHT_SENSITIVITY, ')')
+            print('  Camera Control Dial to the left:', button_l, 'button (threshold <', CAMERA_LEFT_SENSITIVITY, ')\n')
+            print('sorry, no other buttons are supported yet :-(')
+            # reset color
+            print('\u001b[0m')
+            com_port_found = True
+            break
+
+    if not com_port_found:
+
+        match animation:
+            case 0:
+                print("-", end='', flush=True)
+            case 1:
+                print("/", end='', flush=True)
+            case 2:
+                print("-", end='', flush=True)
+            case 3:
+                print("\\", end='', flush=True)
+            case 4:
+                print("|", end='', flush=True)
+        animation = animation + 1
+        if animation == 5:
+            animation = 0
+        print(f' Number of ports: {len(ports)}', flush=True, end='')
+
+        print('\u001b[30D', end='', flush=True)
 
 print('Press Ctrl+C to stop (or close terminal window)')
 
@@ -406,4 +429,5 @@ finally:
         print("AVG difference for   '> 20 ms'   (ms) =",
               '{:>19,.2f}'.format(time_sum_between_measure_packets_2099 / number_of_2099 / (10 ** 6)).replace(",", " "))
 
+    input("PRESS ENTER TO CLOSE")
     sys.exit()
